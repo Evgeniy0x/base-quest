@@ -4,6 +4,7 @@
 // ГЛАВНАЯ СТРАНИЦА BASE QUEST
 // ========================================
 // Объединяет все экраны и управляет стейтом
+// Использует бэкенд API для хранения данных (fallback на localStorage)
 
 import { useState, useEffect, useCallback, Component, ReactNode } from "react";
 import sdk from "@farcaster/frame-sdk";
@@ -19,13 +20,8 @@ import LeaderboardScreen from "@/components/LeaderboardScreen";
 import ProfileScreen from "@/components/ProfileScreen";
 
 import { QUESTS, Quest } from "@/lib/quests-data";
-import {
-  UserStats,
-  loadUserStats,
-  saveUserStats,
-  updateDailyStreak,
-  completeQuest,
-} from "@/lib/store";
+import { UserStats, loadUserStats, saveUserStats, updateDailyStreak } from "@/lib/store";
+import { loadUserFromApi, completeQuestApi, trackShare } from "@/lib/api-store";
 
 // Error Boundary для перехвата ошибок MiniKit вне Farcaster
 class ErrorBoundary extends Component<
@@ -45,50 +41,66 @@ class ErrorBoundary extends Component<
   }
 }
 
+// Данные из Farcaster SDK
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  displayName?: string;
+  pfpUrl?: string;
+}
+
 // Безопасный хук для MiniKit — не крашит приложение вне Farcaster
 function useSafeMiniKit() {
-  const [context, setContext] = useState<Record<string, unknown> | null>(null);
+  const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
+
   useEffect(() => {
     try {
-      // Динамически импортируем MiniKit только в Farcaster-контексте
-      import("@coinbase/onchainkit/minikit").then((mod) => {
-        // MiniKit доступен — пробуем получить контекст
-        if (mod && typeof mod.useMiniKit === "function") {
-          // useMiniKit можно вызывать только внутри рендера,
-          // поэтому используем sdk.context напрямую
-        }
-      }).catch(() => {});
+      // Динамически импортируем MiniKit
+      import("@coinbase/onchainkit/minikit").then(() => {}).catch(() => {});
 
-      // Получаем контекст через Farcaster SDK напрямую
-      sdk.context.then((ctx) => {
-        if (ctx) setContext(ctx as unknown as Record<string, unknown>);
-        // Сообщаем Farcaster, что приложение загрузилось (убирает splash screen)
-        sdk.actions.ready().catch(() => {});
-      }).catch(() => {
-        // Не в Farcaster — всё равно пытаемся вызвать ready
-        sdk.actions.ready().catch(() => {});
-      });
+      // Получаем контекст через Farcaster SDK
+      sdk.context
+        .then((ctx) => {
+          if (ctx) {
+            // Извлекаем данные пользователя из контекста Farcaster
+            const user = (ctx as Record<string, unknown>).user as Record<string, unknown> | undefined;
+            if (user && user.fid) {
+              setFarcasterUser({
+                fid: user.fid as number,
+                username: user.username as string | undefined,
+                displayName: user.displayName as string | undefined,
+                pfpUrl: user.pfpUrl as string | undefined,
+              });
+            }
+          }
+          // Сообщаем Farcaster что приложение загрузилось
+          sdk.actions.ready().catch(() => {});
+        })
+        .catch(() => {
+          sdk.actions.ready().catch(() => {});
+        });
     } catch {
-      // Не в Farcaster — просто работаем без контекста
+      // Не в Farcaster
     }
   }, []);
-  return { context };
+
+  return { farcasterUser };
 }
 
 export default function AppClient() {
   return (
-    <ErrorBoundary fallback={<AppInner context={null} />}>
+    <ErrorBoundary fallback={<AppInner farcasterUser={null} />}>
       <AppContent />
     </ErrorBoundary>
   );
 }
 
 function AppContent() {
-  const { context } = useSafeMiniKit();
-  return <AppInner context={context} />;
+  const { farcasterUser } = useSafeMiniKit();
+  return <AppInner farcasterUser={farcasterUser} />;
 }
 
-function AppInner({ context }: { context: Record<string, unknown> | null }) {
+function AppInner({ farcasterUser }: { farcasterUser: FarcasterUser | null }) {
   // Стейт приложения
   const [currentTab, setCurrentTab] = useState("home");
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -101,12 +113,30 @@ function AppInner({ context }: { context: Record<string, unknown> | null }) {
 
   // Загрузка данных при старте
   useEffect(() => {
-    const stats = loadUserStats();
-    const updated = updateDailyStreak(stats);
-    setUserStats(updated);
-    saveUserStats(updated);
-    setIsReady(true);
-  }, []);
+    async function init() {
+      let stats: UserStats;
+
+      if (farcasterUser?.fid) {
+        // В Farcaster — загружаем из бэкенда API
+        stats = await loadUserFromApi(
+          farcasterUser.fid,
+          farcasterUser.username,
+          farcasterUser.displayName,
+          farcasterUser.pfpUrl
+        );
+      } else {
+        // Обычный браузер — localStorage
+        stats = loadUserStats();
+        stats = updateDailyStreak(stats);
+        saveUserStats(stats);
+      }
+
+      setUserStats(stats);
+      setIsReady(true);
+    }
+
+    init();
+  }, [farcasterUser]);
 
   // Начать квест
   const handleStartQuest = useCallback((quest: Quest) => {
@@ -116,37 +146,46 @@ function AppInner({ context }: { context: Record<string, unknown> | null }) {
 
   // Завершить квест
   const handleCompleteQuest = useCallback(
-    (questId: number, xpReward: number, correctCount: number) => {
+    async (questId: number, xpReward: number, correctCount: number) => {
       if (!userStats) return;
       const quest = QUESTS.find((q) => q.id === questId);
       if (!quest) return;
 
-      const newStats = completeQuest(userStats, questId, xpReward, correctCount);
+      // Сохраняем через API (или localStorage как fallback)
+      const newStats = await completeQuestApi(
+        farcasterUser?.fid || null,
+        userStats,
+        questId,
+        xpReward,
+        correctCount
+      );
+
       setUserStats(newStats);
-      saveUserStats(newStats);
       setQuestResult({ quest, correctCount });
       setActiveQuest(null);
     },
-    [userStats]
+    [userStats, farcasterUser]
   );
 
-  // Шеринг в Farcaster через MiniKit
+  // Шеринг в Farcaster
   const handleShare = useCallback(async () => {
     if (!userStats) return;
 
     try {
-      const appUrl = process.env.NEXT_PUBLIC_URL || "https://base-quest.vercel.app";
+      // Трекаем шеринг в бэкенде
+      await trackShare(farcasterUser?.fid || null);
+
+      const appUrl = process.env.NEXT_PUBLIC_URL || "https://base-quest-peach.vercel.app";
       const text = `🎓 I just leveled up on Base Quest!\n\n⚡ ${userStats.xp} XP earned\n⚔️ ${userStats.completedQuests.length} quests completed\n🔥 ${userStats.streak}-day streak\n\nLearn about the Base ecosystem and earn rewards:`;
 
-      // Используем Farcaster SDK для создания каста
       await sdk.actions.composeCast({
         text,
         embeds: [appUrl],
       });
-    } catch (err) {
+    } catch {
       console.log("Share not available outside Farcaster");
     }
-  }, [userStats]);
+  }, [userStats, farcasterUser]);
 
   // Возврат из квеста
   const handleQuestBack = useCallback(() => {
@@ -173,10 +212,9 @@ function AppInner({ context }: { context: Record<string, unknown> | null }) {
     );
   }
 
-  // Farcaster имя и адрес (если доступны)
-  const user = context?.user as Record<string, unknown> | undefined;
-  const farcasterName = (user?.displayName || user?.username) as string | undefined;
-  const walletAddress = user?.connectedAddress as string | undefined;
+  // Farcaster имя и адрес
+  const farcasterName = farcasterUser?.displayName || farcasterUser?.username;
+  const walletAddress = undefined; // TODO: получить через MiniKit wallet
 
   // === Экран прохождения квеста ===
   if (activeQuest) {
@@ -227,7 +265,10 @@ function AppInner({ context }: { context: Record<string, unknown> | null }) {
       )}
       {currentTab === "badges" && <BadgesScreen userStats={userStats} />}
       {currentTab === "leaderboard" && (
-        <LeaderboardScreen userStats={userStats} />
+        <LeaderboardScreen
+          userStats={userStats}
+          currentFid={farcasterUser?.fid || null}
+        />
       )}
       {currentTab === "profile" && (
         <ProfileScreen
