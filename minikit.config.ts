@@ -4,11 +4,13 @@
 const ROOT_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
 export const minikitConfig = {
-  // Account Association — генерируется на base.dev после деплоя
+  // Account Association — подпись сгенерирована через Farcaster Developer Tools
   accountAssociation: {
-    header: process.env.NEXT_PUBLIC_FARCASTER_HEADER || "",
-    payload: process.env.NEXT_PUBLIC_FARCASTER_PAYLOAD || "",
-    signature: process.env.NEXT_PUBLIC_FARCASTER_SIGNATURE || "",
+    header:
+      "eyJmaWQiOjk0Mzg5NSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDJmODlmZjY3RjE3OTNkYURDOWVhYzhDM2FFMDYwMDA5MmI3QUU0OWEifQ",
+    payload: "eyJkb21haW4iOiJiYXNlLXF1ZXN0LXBlYWNoLnZlcmNlbC5hcHAifQ",
+    signature:
+      "4jUW8X1xas2RIlx+LzSI1n4hDWJYg9M83Zvj1pa0oJlV1IVnmSUHivf7syitMV2ssQ4ZAXOD1cMCod0U8Xx//hs=",
   },
   // Конфигурация мини-аппа
   frame: {
@@ -16,25 +18,16 @@ export const minikitConfig = {
     name: "Base Quest",
     subtitle: "Learn Base. Earn Rewards.",
     description:
-      "Interactive learn-to-earn mini app for the Base ecosystem. Complete quests, earn XP, collect NFT badges, and climb the leaderboard while mastering DeFi, Farcaster, AI Agents, and more on Base L2.",
+      "Learn-to-earn mini app for Base. Complete quests, earn XP, collect NFT badges, and climb the leaderboard while mastering Base L2.",
     iconUrl: `${ROOT_URL}/icon.png`,
     splashImageUrl: `${ROOT_URL}/splash.png`,
     splashBackgroundColor: "#0a0a1e",
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
     primaryCategory: "education",
-    tags: [
-      "learn",
-      "education",
-      "base",
-      "defi",
-      "quests",
-      "web3",
-      "earn",
-      "nft",
-    ],
+    tags: ["learn", "base", "defi", "quests", "web3"],
     heroImageUrl: `${ROOT_URL}/hero.png`,
-    ogTitle: "Base Quest — Learn Base. Earn Rewards.",
+    ogTitle: "Base Quest",
     ogDescription:
       "Complete quests, earn XP, collect NFT badges while learning the Base ecosystem.",
     ogImageUrl: `${ROOT_URL}/og.png`,
