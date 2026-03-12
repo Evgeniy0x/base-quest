@@ -62,7 +62,12 @@ function useSafeMiniKit() {
       // Получаем контекст через Farcaster SDK напрямую
       sdk.context.then((ctx) => {
         if (ctx) setContext(ctx as unknown as Record<string, unknown>);
-      }).catch(() => {});
+        // Сообщаем Farcaster, что приложение загрузилось (убирает splash screen)
+        sdk.actions.ready().catch(() => {});
+      }).catch(() => {
+        // Не в Farcaster — всё равно пытаемся вызвать ready
+        sdk.actions.ready().catch(() => {});
+      });
     } catch {
       // Не в Farcaster — просто работаем без контекста
     }
