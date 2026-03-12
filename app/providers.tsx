@@ -3,13 +3,28 @@
 // Провайдеры — оборачивают всё приложение
 // MiniKit, Wagmi (кошельки), React Query (кэш данных)
 
-import { ReactNode } from "react";
+import { ReactNode, Component } from "react";
 import { base } from "wagmi/chains";
 import { MiniKitProvider } from "@coinbase/onchainkit/minikit";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { coinbaseWallet } from "wagmi/connectors";
+
+// Безопасная обёртка — если MiniKitProvider крашится (вне Farcaster), просто показываем children
+class SafeMiniKit extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) return this.props.children;
+    return <MiniKitProvider>{this.props.children}</MiniKitProvider>;
+  }
+}
 
 // Конфигурация Wagmi — подключение к сети Base
 const wagmiConfig = createConfig({
@@ -41,7 +56,7 @@ export function Providers({ children }: { children: ReactNode }) {
             },
           }}
         >
-          <MiniKitProvider>{children}</MiniKitProvider>
+          <SafeMiniKit>{children}</SafeMiniKit>
         </OnchainKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

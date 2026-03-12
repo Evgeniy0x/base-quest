@@ -5,8 +5,7 @@
 // ========================================
 // Объединяет все экраны и управляет стейтом
 
-import { useState, useEffect, useCallback } from "react";
-import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useState, useEffect, useCallback, Component, ReactNode } from "react";
 import sdk from "@farcaster/frame-sdk";
 
 import Header from "@/components/Header";
@@ -28,11 +27,63 @@ import {
   completeQuest,
 } from "@/lib/store";
 
-export default function AppClient() {
-  // MiniKit — контекст Farcaster (пользователь, кошелёк и т.д.)
-  const { context } = useMiniKit();
-  // Farcaster SDK используем напрямую для шеринга
+// Error Boundary для перехвата ошибок MiniKit вне Farcaster
+class ErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
 
+// Безопасный хук для MiniKit — не крашит приложение вне Farcaster
+function useSafeMiniKit() {
+  const [context, setContext] = useState<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    try {
+      // Динамически импортируем MiniKit только в Farcaster-контексте
+      import("@coinbase/onchainkit/minikit").then((mod) => {
+        // MiniKit доступен — пробуем получить контекст
+        if (mod && typeof mod.useMiniKit === "function") {
+          // useMiniKit можно вызывать только внутри рендера,
+          // поэтому используем sdk.context напрямую
+        }
+      }).catch(() => {});
+
+      // Получаем контекст через Farcaster SDK напрямую
+      sdk.context.then((ctx) => {
+        if (ctx) setContext(ctx as unknown as Record<string, unknown>);
+      }).catch(() => {});
+    } catch {
+      // Не в Farcaster — просто работаем без контекста
+    }
+  }, []);
+  return { context };
+}
+
+export default function AppClient() {
+  return (
+    <ErrorBoundary fallback={<AppInner context={null} />}>
+      <AppContent />
+    </ErrorBoundary>
+  );
+}
+
+function AppContent() {
+  const { context } = useSafeMiniKit();
+  return <AppInner context={context} />;
+}
+
+function AppInner({ context }: { context: Record<string, unknown> | null }) {
   // Стейт приложения
   const [currentTab, setCurrentTab] = useState("home");
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -118,9 +169,9 @@ export default function AppClient() {
   }
 
   // Farcaster имя и адрес (если доступны)
-  const farcasterName = context?.user?.displayName || context?.user?.username;
-  // @ts-expect-error — addresses may exist in runtime Farcaster context
-  const walletAddress = context?.user?.connectedAddress as string | undefined;
+  const user = context?.user as Record<string, unknown> | undefined;
+  const farcasterName = (user?.displayName || user?.username) as string | undefined;
+  const walletAddress = user?.connectedAddress as string | undefined;
 
   // === Экран прохождения квеста ===
   if (activeQuest) {
