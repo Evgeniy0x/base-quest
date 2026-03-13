@@ -8,7 +8,7 @@
 // на адрес пользователя. Пользователю не нужен газ!
 
 import { NextRequest, NextResponse } from "next/server";
-import { createWalletClient, createPublicClient, http, getAddress } from "viem";
+import { createWalletClient, createPublicClient, http, getAddress, encodeFunctionData } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia, base } from "viem/chains";
 import { BADGE_CONTRACT_ABI } from "@/lib/contracts/abi";
@@ -16,6 +16,9 @@ import { sql } from "@vercel/postgres";
 
 // Выбираем сеть: Base mainnet по умолчанию, Sepolia только для тестов
 const IS_MAINNET = process.env.NEXT_PUBLIC_CHAIN === "base-mainnet";
+
+// Builder Code для base.dev лидерборда
+const BUILDER_CODE = "bc_1q7250jb";
 const chain = IS_MAINNET ? base : baseSepolia;
 const rpcUrl = IS_MAINNET
   ? "https://mainnet.base.org"
@@ -100,12 +103,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Минтим NFT!
-    const txHash = await walletClient.writeContract({
-      address: contractAddress as `0x${string}`,
+    // Минтим NFT с Builder Code для base.dev лидерборда
+    // Кодируем calldata вручную и добавляем builder code в конец
+    const mintCalldata = encodeFunctionData({
       abi: BADGE_CONTRACT_ABI,
       functionName: "mint",
       args: [getAddress(walletAddress), BigInt(badgeId)],
+    });
+
+    // Добавляем builder code как hex к calldata
+    const builderCodeHex = Buffer.from(BUILDER_CODE).toString("hex");
+    const calldataWithBuilder = `${mintCalldata}${builderCodeHex}` as `0x${string}`;
+
+    const txHash = await walletClient.sendTransaction({
+      to: contractAddress as `0x${string}`,
+      data: calldataWithBuilder,
     });
 
     // Ждём подтверждения транзакции
