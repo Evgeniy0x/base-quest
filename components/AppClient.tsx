@@ -245,6 +245,8 @@ function AppInner({ farcasterUser }: { farcasterUser: FarcasterUser | null }) {
           correctCount={questResult.correctCount}
           onContinue={handleQuestResultContinue}
           onShare={handleShare}
+          walletAddress={walletAddress}
+          fid={farcasterUser?.fid || null}
         />
       </div>
     );

@@ -14,12 +14,12 @@ import { baseSepolia, base } from "viem/chains";
 import { BADGE_CONTRACT_ABI } from "@/lib/contracts/abi";
 import { sql } from "@vercel/postgres";
 
-// Выбираем сеть (Base Sepolia для тестирования, Base mainnet для прода)
-const IS_TESTNET = process.env.NEXT_PUBLIC_CHAIN === "testnet";
-const chain = IS_TESTNET ? baseSepolia : baseSepolia; // Пока всегда testnet
-const rpcUrl = IS_TESTNET
-  ? "https://sepolia.base.org"
-  : "https://sepolia.base.org"; // TODO: mainnet RPC
+// Выбираем сеть: Base mainnet по умолчанию, Sepolia только для тестов
+const IS_MAINNET = process.env.NEXT_PUBLIC_CHAIN === "base-mainnet";
+const chain = IS_MAINNET ? base : baseSepolia;
+const rpcUrl = IS_MAINNET
+  ? "https://mainnet.base.org"
+  : "https://sepolia.base.org";
 
 export async function POST(request: NextRequest) {
   try {
@@ -125,7 +125,9 @@ export async function POST(request: NextRequest) {
       txHash,
       blockNumber: receipt.blockNumber.toString(),
       tokenId: badgeId,
-      explorerUrl: `https://sepolia.basescan.org/tx/${txHash}`,
+      explorerUrl: IS_MAINNET
+        ? `https://basescan.org/tx/${txHash}`
+        : `https://sepolia.basescan.org/tx/${txHash}`,
     });
   } catch (error) {
     console.error("Mint error:", error);

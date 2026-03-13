@@ -8,6 +8,8 @@ interface QuestCompleteProps {
   correctCount: number;
   onContinue: () => void;
   onShare: () => void;
+  walletAddress?: string;
+  fid?: number | null;
 }
 
 export default function QuestComplete({
@@ -15,13 +17,53 @@ export default function QuestComplete({
   correctCount,
   onContinue,
   onShare,
+  walletAddress,
+  fid,
 }: QuestCompleteProps) {
   const [showGlow, setShowGlow] = useState(true);
+  const [verifyStatus, setVerifyStatus] = useState<
+    "idle" | "loading" | "success" | "failed"
+  >("idle");
+  const [verifyDetails, setVerifyDetails] = useState("");
 
   useEffect(() => {
     const t = setTimeout(() => setShowGlow(false), 3000);
     return () => clearTimeout(t);
   }, []);
+
+  // On-chain верификация квеста
+  const handleVerify = async () => {
+    if (!walletAddress) {
+      setVerifyStatus("failed");
+      setVerifyDetails("Connect wallet in Farcaster to verify on-chain");
+      return;
+    }
+
+    setVerifyStatus("loading");
+    try {
+      const res = await fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questId: quest.id,
+          walletAddress,
+          fid: fid || undefined,
+        }),
+      });
+      const data = await res.json();
+
+      if (data.verified) {
+        setVerifyStatus("success");
+        setVerifyDetails(data.details || "Verified on-chain!");
+      } else {
+        setVerifyStatus("failed");
+        setVerifyDetails(data.details || "Verification not passed yet");
+      }
+    } catch {
+      setVerifyStatus("failed");
+      setVerifyDetails("Verification error — try again");
+    }
+  };
 
   return (
     <div className="px-5 py-16 text-center min-h-screen flex flex-col items-center justify-center animate-in">
@@ -43,7 +85,7 @@ export default function QuestComplete({
       </p>
 
       {/* Статистика */}
-      <div className="flex gap-6 mb-10 relative z-20">
+      <div className="flex gap-6 mb-8 relative z-20">
         <div className="text-center">
           <p className="text-base-blue text-[32px] font-extrabold">
             +{quest.xp}
@@ -57,6 +99,41 @@ export default function QuestComplete({
           </p>
           <p className="text-gray-500 text-[13px]">Correct</p>
         </div>
+      </div>
+
+      {/* On-chain верификация */}
+      <div className="w-full mb-6 relative z-20">
+        {verifyStatus === "idle" && (
+          <button
+            onClick={handleVerify}
+            className="w-full bg-blue-500/15 text-blue-400 border border-blue-500/30 rounded-[14px] py-3.5 text-[15px] font-bold cursor-pointer transition-all hover:bg-blue-500/25"
+          >
+            Verify On-Chain 🔗
+          </button>
+        )}
+        {verifyStatus === "loading" && (
+          <div className="w-full bg-white/5 border border-white/10 rounded-[14px] py-3.5 text-gray-400 text-[15px]">
+            Checking blockchain... ⏳
+          </div>
+        )}
+        {verifyStatus === "success" && (
+          <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-[14px] py-3.5 text-emerald-400 text-[15px] font-bold">
+            ✅ {verifyDetails}
+          </div>
+        )}
+        {verifyStatus === "failed" && (
+          <div className="w-full">
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-[14px] py-3 px-4 text-orange-400 text-[14px] mb-2">
+              ⚠️ {verifyDetails}
+            </div>
+            <button
+              onClick={handleVerify}
+              className="text-gray-500 text-[13px] underline cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Кнопки */}
