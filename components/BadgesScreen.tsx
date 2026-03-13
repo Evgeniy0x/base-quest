@@ -198,7 +198,7 @@ export default function BadgesScreen({
                       </span>
                       {txHash && (
                         <a
-                          href={`https://sepolia.basescan.org/tx/${txHash}`}
+                          href={`https://basescan.org/tx/${txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block text-base-blue text-[10px] mt-1 underline"

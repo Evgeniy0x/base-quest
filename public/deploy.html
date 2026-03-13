@@ -67,22 +67,28 @@ const MINTER_ADDRESS = "0x42683d3F42B07ff232b6d50D79A3C35F326d628F";
 const BASE_CHAIN_ID = "0x2105"; // 8453
 const METADATA_URI = "https://base-quest-peach.vercel.app/api/metadata/";
 
-// ABI-encoded constructor arg (string)
-function encodeConstructorArg(uri) {
-  // offset to string data (32 bytes)
-  let hex = "0000000000000000000000000000000000000000000000000000000000000020";
-  // string length
-  const len = uri.length;
-  hex += len.toString(16).padStart(64, "0");
-  // string data (utf8, padded to 32 bytes)
-  let strHex = "";
-  for (let i = 0; i < uri.length; i++) {
-    strHex += uri.charCodeAt(i).toString(16).padStart(2, "0");
+// Find MetaMask via EIP-6963 (fixes conflict with Bybit/Rabby/Phantom)
+let provider = null;
+const walletProviders = {};
+window.addEventListener('eip6963:announceProvider', (e) => {
+  walletProviders[e.detail.info.rdns] = e.detail.provider;
+  // Auto-select MetaMask
+  if (e.detail.info.rdns === 'io.metamask') {
+    provider = e.detail.provider;
+    document.getElementById("connectBtn").textContent = "Подключить MetaMask ✓";
   }
-  // pad to multiple of 64
+});
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+// Fallback to window.ethereum after 500ms
+setTimeout(() => { if (!provider) provider = window.ethereum; }, 500);
+
+function encodeConstructorArg(uri) {
+  let hex = "0000000000000000000000000000000000000000000000000000000000000020";
+  hex += uri.length.toString(16).padStart(64, "0");
+  let strHex = "";
+  for (let i = 0; i < uri.length; i++) strHex += uri.charCodeAt(i).toString(16).padStart(2, "0");
   while (strHex.length % 64 !== 0) strHex += "0";
-  hex += strHex;
-  return hex;
+  return hex + strHex;
 }
 
 let contractAddress = null;
@@ -97,22 +103,22 @@ function showStatus(id, msg, type) {
 
 async function connectWallet() {
   try {
-    if (!window.ethereum) {
-      showStatus("walletStatus", "MetaMask не найден! Открой эту страницу в браузере с MetaMask.", "error");
+    if (!provider) {
+      showStatus("walletStatus", "MetaMask не найден! Установи расширение MetaMask.", "error");
       return;
     }
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
     userAddress = accounts[0];
 
     // Switch to Base
     try {
-      await window.ethereum.request({
+      await provider.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: BASE_CHAIN_ID }],
       });
     } catch (e) {
       if (e.code === 4902) {
-        await window.ethereum.request({
+        await provider.request({
           method: "wallet_addEthereumChain",
           params: [{
             chainId: BASE_CHAIN_ID,
@@ -125,14 +131,13 @@ async function connectWallet() {
       }
     }
 
-    // Check balance
-    const balance = await window.ethereum.request({
+    const balance = await provider.request({
       method: "eth_getBalance",
       params: [userAddress, "latest"],
     });
     const ethBalance = parseInt(balance, 16) / 1e18;
 
-    showStatus("walletStatus", `Подключён: ${userAddress.slice(0,6)}...${userAddress.slice(-4)} | ${ethBalance.toFixed(6)} ETH`, "success");
+    showStatus("walletStatus", `✅ Подключён: ${userAddress.slice(0,6)}...${userAddress.slice(-4)} | ${ethBalance.toFixed(6)} ETH`, "success");
     document.getElementById("deployBtn").disabled = false;
     document.getElementById("connectBtn").textContent = "✅ Подключён";
   } catch (e) {
@@ -150,7 +155,7 @@ async function deployContract() {
     const constructorArgs = encodeConstructorArg(METADATA_URI);
     const data = BYTECODE + constructorArgs;
 
-    const txHash = await window.ethereum.request({
+    const txHash = await provider.request({
       method: "eth_sendTransaction",
       params: [{
         from: userAddress,
@@ -165,7 +170,7 @@ async function deployContract() {
     let receipt = null;
     while (!receipt) {
       await new Promise(r => setTimeout(r, 2000));
-      receipt = await window.ethereum.request({
+      receipt = await provider.request({
         method: "eth_getTransactionReceipt",
         params: [txHash],
       });
@@ -199,7 +204,7 @@ async function transferOwnership() {
     const paddedAddress = MINTER_ADDRESS.slice(2).toLowerCase().padStart(64, "0");
     const data = selector + paddedAddress;
 
-    const txHash = await window.ethereum.request({
+    const txHash = await provider.request({
       method: "eth_sendTransaction",
       params: [{
         from: userAddress,
@@ -213,7 +218,7 @@ async function transferOwnership() {
     let receipt = null;
     while (!receipt) {
       await new Promise(r => setTimeout(r, 2000));
-      receipt = await window.ethereum.request({
+      receipt = await provider.request({
         method: "eth_getTransactionReceipt",
         params: [txHash],
       });

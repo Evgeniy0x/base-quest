@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transfer Ownership — Base Quest</title>
+  <style>
+    body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px; background: #0a0a0a; color: #e0e0e0; }
+    h1 { color: #0052FF; }
+    .card { background: #1a1a2e; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    .info { color: #888; font-size: 14px; }
+    .addr { font-family: monospace; color: #0f0; word-break: break-all; font-size: 13px; }
+    button { background: #0052FF; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin: 10px 0; }
+    button:hover { background: #0040cc; }
+    button:disabled { background: #333; cursor: not-allowed; }
+    #status { padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 14px; display: none; }
+    .success { background: #0a3d0a; color: #4ade80; display: block !important; }
+    .error { background: #3d0a0a; color: #f87171; display: block !important; }
+    .pending { background: #3d3d0a; color: #facc15; display: block !important; }
+  </style>
+</head>
+<body>
+  <h1>🔑 Transfer Ownership</h1>
+
+  <div class="card">
+    <p><strong>Контракт:</strong></p>
+    <p class="addr">0xf49C3f283e582592c93092d2DEA84fD7d0D53bBF</p>
+    <p class="info">Base Mainnet (Chain ID: 8453)</p>
+  </div>
+
+  <div class="card">
+    <p><strong>Текущий owner:</strong> твой кошелёк</p>
+    <p><strong>Новый owner (minter):</strong></p>
+    <p class="addr">0x42683d3F42B07ff232b6d50D79A3C35F326d628F</p>
+    <p class="info">Это серверный кошелёк для минта NFT. После передачи ownership сервер сможет минтить бейджи пользователям.</p>
+  </div>
+
+  <button id="connectBtn" onclick="connectWallet()">Подключить MetaMask</button>
+  <button id="transferBtn" onclick="transferOwnership()" disabled>Передать Ownership</button>
+  <div id="status"></div>
+
+  <script>
+    const CONTRACT = "0xf49C3f283e582592c93092d2DEA84fD7d0D53bBF";
+    const NEW_OWNER = "0x42683d3F42B07ff232b6d50D79A3C35F326d628F";
+    const BASE_CHAIN_ID = "0x2105"; // 8453
+
+    let provider = null;
+    let userAccount = null;
+
+    // EIP-6963: находим MetaMask среди нескольких кошельков
+    const walletProviders = {};
+    window.addEventListener('eip6963:announceProvider', (e) => {
+      walletProviders[e.detail.info.rdns] = e.detail.provider;
+      if (e.detail.info.rdns === 'io.metamask') {
+        provider = e.detail.provider;
+      }
+    });
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    setTimeout(() => { if (!provider) provider = window.ethereum; }, 500);
+
+    function setStatus(msg, type) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = type;
+    }
+
+    async function connectWallet() {
+      if (!provider) {
+        setStatus('MetaMask не найден! Установи MetaMask.', 'error');
+        return;
+      }
+      try {
+        setStatus('Подключение...', 'pending');
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        userAccount = accounts[0];
+
+        // Переключаемся на Base
+        try {
+          await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BASE_CHAIN_ID }] });
+        } catch (e) {
+          if (e.code === 4902) {
+            await provider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{ chainId: BASE_CHAIN_ID, chainName: 'Base', rpcUrls: ['https://mainnet.base.org'], nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: ['https://basescan.org'] }]
+            });
+          }
+        }
+
+        document.getElementById('connectBtn').textContent = `✅ ${userAccount.slice(0,6)}...${userAccount.slice(-4)}`;
+        document.getElementById('transferBtn').disabled = false;
+        setStatus('Кошелёк подключён! Нажми "Передать Ownership".', 'success');
+      } catch (err) {
+        setStatus('Ошибка подключения: ' + err.message, 'error');
+      }
+    }
+
+    async function transferOwnership() {
+      if (!provider || !userAccount) {
+        setStatus('Сначала подключи кошелёк!', 'error');
+        return;
+      }
+      try {
+        setStatus('Подтверди транзакцию в MetaMask...', 'pending');
+        document.getElementById('transferBtn').disabled = true;
+
+        // transferOwnership(address) — selector: 0xf2fde38b
+        const selector = '0xf2fde38b';
+        const paddedAddress = NEW_OWNER.slice(2).toLowerCase().padStart(64, '0');
+        const data = selector + paddedAddress;
+
+        const txHash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: userAccount,
+            to: CONTRACT,
+            data: data,
+            gas: '0x' + (100000).toString(16),
+          }]
+        });
+
+        setStatus(`✅ Ownership передан! TX: ${txHash}`, 'success');
+
+        // Ссылка на BaseScan
+        const link = document.createElement('a');
+        link.href = `https://basescan.org/tx/${txHash}`;
+        link.target = '_blank';
+        link.style.color = '#0052FF';
+        link.style.display = 'block';
+        link.style.marginTop = '8px';
+        link.textContent = 'Посмотреть на BaseScan ↗';
+        document.getElementById('status').appendChild(link);
+
+      } catch (err) {
+        setStatus('Ошибка: ' + err.message, 'error');
+        document.getElementById('transferBtn').disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
