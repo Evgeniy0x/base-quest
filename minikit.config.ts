@@ -32,5 +32,6 @@ export const minikitConfig = {
       "Complete quests, earn XP, collect NFT badges while learning the Base ecosystem.",
     ogImageUrl: `${ROOT_URL}/og.png`,
     imageUrl: `${ROOT_URL}/og.png`,
+    screenshotUrls: [`${ROOT_URL}/screenshot.png`],
   },
 };
