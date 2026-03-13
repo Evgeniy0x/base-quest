@@ -1,0 +1,74 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <radialGradient id="bg4" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d0d1a;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- Purple glow -->
+    <filter id="purpleGlow4">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bg4)"/>
+
+  <!-- Hexagon outer frame (gold) -->
+  <polygon points="256,50 406,138.5 406,373.5 256,462 106,373.5 106,138.5"
+           fill="none" stroke="#FFD700" stroke-width="3" filter="url(#purpleGlow4)"/>
+
+  <!-- Inner hexagon frame -->
+  <polygon points="256,65 395,147.5 395,364.5 256,447 117,364.5 117,147.5"
+           fill="none" stroke="#DAA520" stroke-width="1" opacity="0.5"/>
+
+  <!-- Hexagon background fill -->
+  <polygon points="256,65 395,147.5 395,364.5 256,447 117,364.5 117,147.5"
+           fill="#0a0a15" opacity="0.7"/>
+
+  <!-- Brain icon -->
+  <g transform="translate(256, 200)">
+    <!-- Left hemisphere -->
+    <path d="M -18 -8 Q -28 -15 -28 0 Q -28 20 -18 25 Q -15 15 -15 0 Q -15 -10 -18 -8 Z"
+          fill="#A855F7" opacity="0.9"/>
+
+    <!-- Right hemisphere -->
+    <path d="M 18 -8 Q 28 -15 28 0 Q 28 20 18 25 Q 15 15 15 0 Q 15 -10 18 -8 Z"
+          fill="#D946EF" opacity="0.85"/>
+
+    <!-- Center top -->
+    <path d="M -15 -8 L -8 -15 L 0 -18 L 8 -15 L 15 -8 Z"
+          fill="#C084FC" opacity="0.8"/>
+
+    <!-- Center middle -->
+    <ellipse cx="0" cy="0" rx="12" ry="14" fill="#A855F7" opacity="0.7"/>
+
+    <!-- Groove/divisions -->
+    <path d="M -8 -5 Q -5 0 -4 8" fill="none" stroke="#7C3AED" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 0 -8 L 0 12" fill="none" stroke="#7C3AED" stroke-width="1.5" opacity="0.5"/>
+    <path d="M 8 -5 Q 5 0 4 8" fill="none" stroke="#7C3AED" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Bottom connections -->
+    <ellipse cx="-10" cy="18" rx="6" ry="8" fill="#9333EA" opacity="0.7"/>
+    <ellipse cx="10" cy="18" rx="6" ry="8" fill="#9333EA" opacity="0.7"/>
+
+    <!-- Shine effect -->
+    <circle cx="-8" cy="-5" r="3" fill="#fff" opacity="0.3"/>
+    <circle cx="8" cy="-5" r="3" fill="#fff" opacity="0.2"/>
+  </g>
+
+  <!-- Gold tier indicator -->
+  <circle cx="256" cy="480" r="18" fill="#FFD700" filter="url(#purpleGlow4)"/>
+  <text x="256" y="487" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">G</text>
+
+  <!-- Badge name -->
+  <text x="256" y="425" font-size="18" font-weight="bold" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif">Quiz Master</text>
+
+  <!-- Base Quest text -->
+  <text x="256" y="510" font-size="11" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" letter-spacing="1">BASE QUEST</text>
+</svg>

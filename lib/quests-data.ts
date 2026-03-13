@@ -300,6 +300,264 @@ export const QUESTS: Quest[] = [
       },
     ],
   },
+  // ====== НОВЫЕ КВЕСТЫ (7-12) ======
+  {
+    id: 7,
+    category: "security",
+    title: "Staying Safe On-Chain",
+    subtitle: "Protect your wallet and assets",
+    xp: 90,
+    duration: "5 min",
+    difficulty: "Beginner",
+    icon: "🛡️",
+    steps: [
+      {
+        type: "learn",
+        title: "Главные угрозы в Web3",
+        content:
+          "Фишинг, вредоносные аппрувы и поддельные сайты — топ-3 угрозы. Никогда не подписывайте транзакции, которых не понимаете. Один неверный approve может стоить всех ваших активов.",
+      },
+      {
+        type: "learn",
+        title: "Правило 3-х кошельков",
+        content:
+          "Hot wallet — для повседневных транзакций (малые суммы). Cold wallet (Ledger/Trezor) — для хранения. Burner wallet — для минтов и незнакомых dApps. Разделяйте риски!",
+      },
+      {
+        type: "learn",
+        title: "Revoke опасные разрешения",
+        content:
+          "Каждый раз, взаимодействуя с dApp, вы даёте approve на токены. Проверяйте и отзывайте ненужные разрешения через revoke.cash. На Base комиссия отзыва < $0.01.",
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Какой кошелёк лучше использовать для минтов на незнакомых сайтах?",
+        options: ["Hot wallet с основными средствами", "Cold wallet", "Burner wallet", "Любой"],
+        correct: 2,
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Через какой сервис можно отозвать опасные разрешения?",
+        options: ["OpenSea", "revoke.cash", "Etherscan только", "Нельзя отозвать"],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 8,
+    category: "bridge",
+    title: "Bridging to Base",
+    subtitle: "Move assets from Ethereum to Base",
+    xp: 70,
+    duration: "4 min",
+    difficulty: "Beginner",
+    icon: "🌉",
+    steps: [
+      {
+        type: "learn",
+        title: "Зачем нужен Bridge?",
+        content:
+          "Bridge (мост) переносит активы между сетями. Чтобы использовать Base, нужно перевести ETH или токены из Ethereum L1 на Base L2. Это как перевод между банками, но on-chain.",
+      },
+      {
+        type: "learn",
+        title: "Official Base Bridge",
+        content:
+          "bridge.base.org — официальный мост. L1→L2 занимает ~1 минуту. L2→L1 (вывод) — ~7 дней из-за challenge period. Для быстрого вывода используйте Across, Stargate или Relay.",
+      },
+      {
+        type: "learn",
+        title: "Coinbase — самый простой путь",
+        content:
+          "Самый лёгкий способ получить ETH на Base — вывести напрямую с Coinbase. Выберите сеть Base при выводе — мгновенно и дёшево. Это path of least resistance.",
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Сколько длится вывод через официальный Base Bridge (L2→L1)?",
+        options: ["1 минута", "1 час", "1 день", "~7 дней"],
+        correct: 3,
+      },
+    ],
+  },
+  {
+    id: 9,
+    category: "dev",
+    title: "Building on Base",
+    subtitle: "Start your dev journey",
+    xp: 100,
+    duration: "6 min",
+    difficulty: "Intermediate",
+    icon: "⚒️",
+    steps: [
+      {
+        type: "learn",
+        title: "Base = EVM-совместимый",
+        content:
+          "Base полностью совместим с EVM (Ethereum Virtual Machine). Если вы умеете писать Solidity — вы уже умеете строить на Base. Все инструменты Ethereum работают: Hardhat, Foundry, Remix.",
+      },
+      {
+        type: "learn",
+        title: "OnchainKit — быстрый старт",
+        content:
+          "OnchainKit от Coinbase — React-библиотека для on-chain приложений. Wallet connection, транзакции, Identity — всё из коробки. Base Quest построен на OnchainKit!",
+      },
+      {
+        type: "learn",
+        title: "Base.dev — Submit & Build",
+        content:
+          "base.dev — платформа для разработчиков Base. Подавайте свои проекты, получайте гранты и фидбек от команды Base. Hackathons, Buildathons и rewards для лучших билдеров.",
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Какая React-библиотека от Coinbase упрощает on-chain разработку?",
+        options: ["web3.js", "ethers.js", "OnchainKit", "Wagmi"],
+        correct: 2,
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Base совместим с...",
+        options: ["Только Solana", "EVM (Ethereum Virtual Machine)", "Cosmos SDK", "Polkadot"],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 10,
+    category: "stablecoin",
+    title: "USDC on Base",
+    subtitle: "The dollar on-chain",
+    xp: 75,
+    duration: "4 min",
+    difficulty: "Beginner",
+    icon: "💵",
+    steps: [
+      {
+        type: "learn",
+        title: "USDC — доллар на блокчейне",
+        content:
+          "USDC — стейблкоин от Circle, привязанный 1:1 к доллару США. На Base это нативный USDC (не bridged), что означает прямую поддержку от Circle с мгновенным выпуском и погашением.",
+      },
+      {
+        type: "learn",
+        title: "Зачем нужен USDC на Base?",
+        content:
+          "Переводы USDC на Base стоят < $0.01 и занимают < 1 секунды. Сравните: банковский перевод — $25-50 и 1-3 дня. USDC на Base — это будущее платежей.",
+      },
+      {
+        type: "learn",
+        title: "Заработок на USDC",
+        content:
+          "Через Morpho, Aave или Compound на Base можно получать 3-8% годовых на USDC. Это значительно больше, чем на банковском вкладе, и с полным контролем ваших средств.",
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "USDC на Base — это...",
+        options: ["Bridged USDC", "Нативный USDC от Circle", "Wrapped USDC", "USDT"],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 11,
+    category: "governance",
+    title: "Base Governance & OP Stack",
+    subtitle: "How Base is governed",
+    xp: 85,
+    duration: "5 min",
+    difficulty: "Intermediate",
+    icon: "⚖️",
+    steps: [
+      {
+        type: "learn",
+        title: "OP Stack — движок Base",
+        content:
+          "Base построен на OP Stack — open-source фреймворке от Optimism. Это делает Base частью Superchain — сети совместимых L2. Interop между Base, Optimism, Zora, Mode и другими.",
+      },
+      {
+        type: "learn",
+        title: "Revenue Sharing",
+        content:
+          "Base делит доход с Optimism Collective. Часть прибыли от секвенсера идёт на развитие общего блага (public goods). Это модель sustainable Web3 — рост экосистемы, а не только прибыль.",
+      },
+      {
+        type: "learn",
+        title: "Superchain Vision",
+        content:
+          "Цель Superchain — сотни L2 на OP Stack, работающих как одна сеть. Общая безопасность, shared sequencing, native bridging. Base — якорный участник этой vision.",
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "На каком фреймворке построен Base?",
+        options: ["ZK Stack", "OP Stack", "Cosmos SDK", "Собственный"],
+        correct: 1,
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Superchain — это...",
+        options: [
+          "Отдельный блокчейн",
+          "Биржа",
+          "Сеть совместимых L2 на OP Stack",
+          "NFT-коллекция",
+        ],
+        correct: 2,
+      },
+    ],
+  },
+  {
+    id: 12,
+    category: "meme",
+    title: "Memecoins & Culture",
+    subtitle: "The fun side of Base",
+    xp: 65,
+    duration: "4 min",
+    difficulty: "Beginner",
+    icon: "🐸",
+    steps: [
+      {
+        type: "learn",
+        title: "Мемкоины на Base",
+        content:
+          "Base стал домом для мемкоинов: BRETT, TOSHI, DEGEN и других. Мемкоины — это cultural tokens, отражающие настроение и юмор комьюнити. Высокий risk, но огромная энергия.",
+      },
+      {
+        type: "learn",
+        title: "DEGEN — валюта Farcaster",
+        content:
+          "DEGEN родился как tipping-токен в Farcaster. Пользователи награждали друг друга за хорошие посты. Из шутки вырос в серьёзный проект с собственным L3 (Degen Chain).",
+      },
+      {
+        type: "learn",
+        title: "Осторожность с мемкоинами",
+        content:
+          "99% мемкоинов теряют стоимость. Правила: никогда не вкладывайте больше, чем готовы потерять. DYOR (Do Your Own Research). Проверяйте ликвидность и lock-up токенов.",
+      },
+      {
+        type: "quiz",
+        title: "Проверь себя",
+        content: "",
+        question: "Откуда появился токен DEGEN?",
+        options: ["Binance Launchpad", "Farcaster tipping", "Coinbase листинг", "Airdrop"],
+        correct: 1,
+      },
+    ],
+  },
 ];
 
 // Категории для фильтрации
@@ -311,6 +569,12 @@ export const CATEGORIES = [
   { id: "nft", label: "NFT", icon: "🎨" },
   { id: "ai", label: "AI", icon: "🤖" },
   { id: "wallet", label: "Wallet", icon: "👛" },
+  { id: "security", label: "Security", icon: "🛡️" },
+  { id: "bridge", label: "Bridge", icon: "🌉" },
+  { id: "dev", label: "Dev", icon: "⚒️" },
+  { id: "stablecoin", label: "USDC", icon: "💵" },
+  { id: "governance", label: "Gov", icon: "⚖️" },
+  { id: "meme", label: "Meme", icon: "🐸" },
 ];
 
 // Бейджи
@@ -344,8 +608,8 @@ export const BADGES: Badge[] = [
     id: 3,
     name: "Base Explorer",
     icon: "🧭",
-    description: "Complete all quests",
-    requirement: 6,
+    description: "Complete all 12 quests",
+    requirement: 12,
     type: "quests",
   },
   {

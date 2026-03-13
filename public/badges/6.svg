@@ -1,0 +1,86 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <radialGradient id="bg6" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d0d1a;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- Pink glow -->
+    <filter id="pinkGlow6">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bg6)"/>
+
+  <!-- Hexagon outer frame (silver) -->
+  <polygon points="256,50 406,138.5 406,373.5 256,462 106,373.5 106,138.5"
+           fill="none" stroke="#C0C0C0" stroke-width="3" filter="url(#pinkGlow6)"/>
+
+  <!-- Inner hexagon frame -->
+  <polygon points="256,65 395,147.5 395,364.5 256,447 117,364.5 117,147.5"
+           fill="none" stroke="#808080" stroke-width="1" opacity="0.5"/>
+
+  <!-- Hexagon background fill -->
+  <polygon points="256,65 395,147.5 395,364.5 256,447 117,364.5 117,147.5"
+           fill="#0a0a15" opacity="0.7"/>
+
+  <!-- Butterfly icon -->
+  <g transform="translate(256, 200)">
+    <!-- Left upper wing -->
+    <ellipse cx="-16" cy="-12" rx="14" ry="18" fill="#FF1493" opacity="0.9" transform="rotate(-25 -16 -12)"/>
+
+    <!-- Left lower wing -->
+    <ellipse cx="-18" cy="8" rx="12" ry="16" fill="#FF69B4" opacity="0.85" transform="rotate(25 -18 8)"/>
+
+    <!-- Right upper wing (mirrored) -->
+    <ellipse cx="16" cy="-12" rx="14" ry="18" fill="#FF1493" opacity="0.9" transform="rotate(25 16 -12)"/>
+
+    <!-- Right lower wing (mirrored) -->
+    <ellipse cx="18" cy="8" rx="12" ry="16" fill="#FF69B4" opacity="0.85" transform="rotate(-25 18 8)"/>
+
+    <!-- Wing patterns - left -->
+    <circle cx="-20" cy="-15" r="4" fill="#FFB6C1" opacity="0.7"/>
+    <circle cx="-16" cy="-8" r="3" fill="#FFC0CB" opacity="0.6"/>
+    <circle cx="-18" cy="5" r="3.5" fill="#FFB6C1" opacity="0.6"/>
+
+    <!-- Wing patterns - right -->
+    <circle cx="20" cy="-15" r="4" fill="#FFB6C1" opacity="0.7"/>
+    <circle cx="16" cy="-8" r="3" fill="#FFC0CB" opacity="0.6"/>
+    <circle cx="18" cy="5" r="3.5" fill="#FFB6C1" opacity="0.6"/>
+
+    <!-- Body -->
+    <ellipse cx="0" cy="0" rx="5" ry="12" fill="#D946EF" opacity="0.9"/>
+
+    <!-- Head -->
+    <circle cx="0" cy="-14" r="4" fill="#D946EF" opacity="0.95"/>
+
+    <!-- Antennae left -->
+    <path d="M -2 -17 Q -6 -22 -5 -28" fill="none" stroke="#FF1493" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+    <circle cx="-5" cy="-28" r="2" fill="#FF1493" opacity="0.7"/>
+
+    <!-- Antennae right -->
+    <path d="M 2 -17 Q 6 -22 5 -28" fill="none" stroke="#FF1493" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+    <circle cx="5" cy="-28" r="2" fill="#FF1493" opacity="0.7"/>
+
+    <!-- Eye shine -->
+    <circle cx="-1.5" cy="-15" r="1.5" fill="#fff" opacity="0.5"/>
+    <circle cx="1.5" cy="-15" r="1.5" fill="#fff" opacity="0.5"/>
+  </g>
+
+  <!-- Silver tier indicator -->
+  <circle cx="256" cy="480" r="18" fill="#C0C0C0" filter="url(#pinkGlow6)"/>
+  <text x="256" y="487" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">S</text>
+
+  <!-- Badge name -->
+  <text x="256" y="425" font-size="18" font-weight="bold" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif">Social Butterfly</text>
+
+  <!-- Base Quest text -->
+  <text x="256" y="510" font-size="11" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" letter-spacing="1">BASE QUEST</text>
+</svg>

@@ -47,6 +47,7 @@ interface FarcasterUser {
   username?: string;
   displayName?: string;
   pfpUrl?: string;
+  walletAddress?: string;
 }
 
 // Безопасный хук для MiniKit — не крашит приложение вне Farcaster
@@ -65,11 +66,17 @@ function useSafeMiniKit() {
             // Извлекаем данные пользователя из контекста Farcaster
             const user = (ctx as Record<string, unknown>).user as Record<string, unknown> | undefined;
             if (user && user.fid) {
+              // Получаем адрес кошелька из контекста
+              const connectedAddress = (ctx as Record<string, unknown>).client as Record<string, unknown> | undefined;
+              const walletAddr = connectedAddress?.address as string | undefined
+                || (user.custody_address || user.custodyAddress) as string | undefined;
+
               setFarcasterUser({
                 fid: user.fid as number,
                 username: user.username as string | undefined,
                 displayName: user.displayName as string | undefined,
                 pfpUrl: user.pfpUrl as string | undefined,
+                walletAddress: walletAddr,
               });
             }
           }
@@ -214,7 +221,7 @@ function AppInner({ farcasterUser }: { farcasterUser: FarcasterUser | null }) {
 
   // Farcaster имя и адрес
   const farcasterName = farcasterUser?.displayName || farcasterUser?.username;
-  const walletAddress = undefined; // TODO: получить через MiniKit wallet
+  const walletAddress = farcasterUser?.walletAddress || undefined;
 
   // === Экран прохождения квеста ===
   if (activeQuest) {
@@ -263,7 +270,13 @@ function AppInner({ farcasterUser }: { farcasterUser: FarcasterUser | null }) {
           onStartQuest={handleStartQuest}
         />
       )}
-      {currentTab === "badges" && <BadgesScreen userStats={userStats} />}
+      {currentTab === "badges" && (
+        <BadgesScreen
+          userStats={userStats}
+          walletAddress={walletAddress}
+          fid={farcasterUser?.fid || null}
+        />
+      )}
       {currentTab === "leaderboard" && (
         <LeaderboardScreen
           userStats={userStats}
