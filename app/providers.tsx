@@ -2,6 +2,7 @@
 
 // Провайдеры — оборачивают всё приложение
 // MiniKit, Wagmi (кошельки), React Query (кэш данных)
+// Builder Code (ERC-8021) — привязывает транзакции к нашему приложению для Builder Rewards
 
 import { ReactNode, Component } from "react";
 import { base } from "wagmi/chains";
@@ -10,6 +11,14 @@ import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { coinbaseWallet } from "wagmi/connectors";
+import { Attribution } from "ox/erc8021";
+
+// Builder Code ERC-8021 — каждая транзакция через наше приложение
+// будет содержать суффикс, привязывающий её к нашему builder code
+// Это позволяет Base отслеживать активность и начислять Builder Rewards
+const DATA_SUFFIX = Attribution.toDataSuffix({
+  codes: ["bc_1q7250jb"], // Builder Code из base.dev
+});
 
 // Безопасная обёртка — если MiniKitProvider крашится (вне Farcaster), просто показываем children
 class SafeMiniKit extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -27,6 +36,7 @@ class SafeMiniKit extends Component<{ children: ReactNode }, { hasError: boolean
 }
 
 // Конфигурация Wagmi — подключение к сети Base
+// dataSuffix автоматически добавляет Builder Code ко всем транзакциям
 const wagmiConfig = createConfig({
   chains: [base],
   connectors: [
@@ -38,6 +48,7 @@ const wagmiConfig = createConfig({
   transports: {
     [base.id]: http(), // RPC для Base сети
   },
+  dataSuffix: DATA_SUFFIX, // ERC-8021: Builder Code для отслеживания транзакций
 });
 
 // React Query для кэширования данных
